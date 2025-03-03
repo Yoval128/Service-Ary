@@ -1,0 +1,90 @@
+const express = require("express");
+const connection = require("../db/connection");
+const router = express.Router();
+
+// 📌 Ruta de prueba
+router.get("/", (req, res) => {
+  res.send("Ruta de tarjetas RFID funcionando");
+});
+
+// 📌 Obtener todas las tarjetas RFID
+router.get("/rfid-list", (req, res) => {
+  connection.query("SELECT * FROM tarjetas_rfid", (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    res.json(results);
+  });
+});
+
+// 📌 Registrar una nueva tarjeta RFID
+router.post("/register-rfid", (req, res) => {
+  const { Codigo_RFID, Estado } = req.body;
+  if (!Codigo_RFID || !Estado) {
+    return res.status(400).json({ error: "Faltan datos requeridos" });
+  }
+
+  connection.query(
+    "INSERT INTO tarjetas_rfid (Codigo_RFID, Estado) VALUES (?, ?)",
+    [Codigo_RFID, Estado],
+    (err, result) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      res.json({ message: "Tarjeta registrada", id: result.insertId });
+    }
+  );
+});
+
+// 📌 Actualizar el estado de una tarjeta RFID
+router.put("/update-rfid/:id", (req, res) => {
+  const { Estado } = req.body;
+  const { id } = req.params;
+
+  if (!Estado) {
+    return res.status(400).json({ error: "El estado es requerido" });
+  }
+
+  connection.query(
+    "UPDATE tarjetas_rfid SET Estado = ? WHERE ID_Tarjeta_RFID = ?",
+    [Estado, id],
+    (err, result) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      res.json({ message: "Estado actualizado" });
+    }
+  );
+});
+
+// 📌 Eliminar una tarjeta RFID
+router.delete("/delete-rfid/:id", (req, res) => {
+  const { id } = req.params;
+
+  connection.query(
+    "DELETE FROM tarjetas_rfid WHERE ID_Tarjeta_RFID = ?",
+    [id],
+    (err, result) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      res.json({ message: "Tarjeta eliminada" });
+    }
+  );
+});
+
+// 📌 Obtener todas las tarjetas RFID Disponibles
+router.get("/rfid-list-disponible", (req, res) => {
+  connection.query(
+    "SELECT * FROM tarjetas_rfid WHERE Estado = 'Activo' AND ID_Tarjeta_RFID NOT IN (SELECT ID_Tarjeta_RFID FROM usuarios WHERE ID_Tarjeta_RFID IS NOT NULL)",
+    (err, results) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      res.json(results);
+    }
+  );
+});
+
+
+module.exports = router;
