@@ -11,6 +11,7 @@ const archiversRoutes = require("./archivers.js");
 const rfidCardsRoutes = require("./rfidCards.js");
 const rfidTagsRoutes = require("./rfidTags.js");
 const administratorsRoutes = require("./administrators.js");
+const documentMovementsRoutes = require("./documentMovements.js");
 // Usa las rutas
 router.use("/auth", authRoutes);
 router.use("/users", usersRoutes);
@@ -21,5 +22,6 @@ router.use("/access", accessRoutes);
 router.use("/archivers", archiversRoutes);
 router.use("/rfidCards", rfidCardsRoutes);
 router.use("/administrators", administratorsRoutes);
+router.use("/documentMovements",documentMovementsRoutes );
 
 module.exports = router;

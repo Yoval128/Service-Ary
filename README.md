@@ -1,55 +1,97 @@
 # ARYControlAccess
 
-## Requisitos
+Sistema de gestión de accesos basado en RFID, desarrollado con Node.js y MySQL.
+
+## ✅ Requisitos
 
 Antes de comenzar, asegúrate de tener instalados los siguientes programas:
 
-- [Node.js]
-- [npm]
-- [Base de datos SQL (MySQL)]
+- [Node.js](https://nodejs.org) (v18 o superior)
+- [npm](https://www.npmjs.com/)
+- Base de datos SQL (MySQL o MariaDB)
 
-## Instalación de las Dependencias
+## 📦 Instalación de las Dependencias
 
-Para iniciar el proyecto y asegurarte de que todas las dependencias necesarias estén instaladas, sigue estos pasos:
+Sigue estos pasos para configurar el entorno del proyecto:
+
+1. Clona el repositorio:
 
 ```bash
-npm install
+git clone https://github.com/service
+cd ARYControlAccess
+```
+
+2. Inicializa el proyecto y descarga las dependencias principales:
+
+```bash
 npm init -y
+npm install
 ```
 
-*Para la encriptación de contraseñas y jsonwebtoken
+3. Instala las dependencias adicionales necesarias:
+
+- **Encriptación de contraseñas y manejo de JWT (JSON Web Tokens):**
 
 ```bash
-* npm install bcryptjs jsonwebtoken 
+npm install bcryptjs jsonwebtoken
 ```
 
-*Manejo de Rutas: Te permite definir diferentes rutas para manejar diversas solicitudes HTTP como GET, POST, PUT,
-DELETE,
+- **Manejo de rutas y conexión a la base de datos:**
 
 ```bash
-npm install express  
-npm install mysql
-npm install express multer xlsx mysql2
-npm install express multer xlsx mariadb
-npm install dotenv
-npm i express-validator
-  ```
+npm install express mysql mysql2 mariadb
+```
+
+- **Manejo de archivos y validaciones:**
+
+```bash
+npm install multer xlsx dotenv express-validator
+```
+
+## ▶️ Ejecución del Proyecto
+
+1. Asegúrate de tener tu base de datos configurada y el archivo `.env` con las credenciales correspondientes.
+
+2. Ejecuta el proyecto:
+
+```bash
+npm start
+```
+
+## 📖 Notas
+
+- **express:** Para manejar las rutas y solicitudes HTTP (GET, POST, PUT, DELETE).
+- **bcryptjs:** Para la encriptación segura de las contraseñas.
+- **jsonwebtoken:** Para la autenticación mediante tokens JWT.
+- **multer:** Para la gestión de archivos.
+- **dotenv:** Para la configuración de variables de entorno.
+
 
 ## Estructura del proyecto
 
-/aryaccesscontrol
-/services
-│
-├── /node_modules # Módulos de dependencias (generado por npm)
-├── /db # Conexión con la base de datos
-│ └── connection.js # Archivo con la conexión a la base de datos
-├── /routes # Rutas de la API
-│ ├── auth.js # Rutas de autenticación (Login, Registro)
-│ └── index.js # Rutas principales, incluir todas las rutas
-├── app.js # Archivo principal que inicia el servidor
-├── package.json # Dependencias del proyecto
-├── .env # Variables de entorno (clave de JWT, base de datos, etc.)
-└── README.md # Documentación básica del proyecto
+services/
+├── db/                     # Conexión y configuración de la base de datos
+├── db-script/              # Scripts para inicialización de la base de datos
+├── node_modules/           # Dependencias del proyecto (generado automáticamente por npm)
+├── routes/                 # Rutas del API REST
+│   ├── access.js            # Rutas de acceso
+│   ├── administrators.js    # Rutas para administradores
+│   ├── archivers.js         # Rutas de archivadores
+│   ├── auth.js              # Rutas de autenticación
+│   ├── documentMovements.js # Rutas para el movimiento de documentos
+│   ├── documents.js         # Rutas para la gestión de documentos
+│   ├── index.js             # Punto de entrada de las rutas
+│   ├── rfidCards.js         # Rutas para las tarjetas RFID
+│   ├── rfidTags.js          # Rutas para las etiquetas RFID
+│   ├── uploads.js           # Rutas para la gestión de archivos subidos
+│   └── users.js             # Rutas para la gestión de usuarios
+├── uploads/                # Carpeta para almacenamiento de archivos subidos
+├── .env                    # Variables de entorno (configuración sensible)
+├── .gitignore              # Archivos y carpetas ignorados por Git
+├── app.js                  # Archivo principal del servidor
+├── package.json            # Archivo de configuración de dependencias
+├── package-lock.json       # Versión fija de las dependencias
+└── README.md               # Documentación del proyecto
 
 ## Prueba de la Api
 
