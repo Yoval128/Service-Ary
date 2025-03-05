@@ -34,3 +34,5 @@ coverage/
 # Otros archivos temporales
 *.swp
 *.swo
+
+.env

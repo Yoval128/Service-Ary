@@ -17,8 +17,8 @@ Sigue estos pasos para configurar el entorno del proyecto:
 1. Clona el repositorio:
 
 ```bash
-git clone https://github.com/service
-cd ARYControlAccess
+git clone https://github.com/Yoval128/Service-Ary.git
+cd Service-Ary
 ```
 
 2. Inicializa el proyecto y descarga las dependencias principales:

@@ -12,6 +12,7 @@ const rfidCardsRoutes = require("./rfidCards.js");
 const rfidTagsRoutes = require("./rfidTags.js");
 const administratorsRoutes = require("./administrators.js");
 const documentMovementsRoutes = require("./documentMovements.js");
+
 // Usa las rutas
 router.use("/auth", authRoutes);
 router.use("/users", usersRoutes);
