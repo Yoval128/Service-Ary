@@ -32,7 +32,7 @@ npm install mysql
 npm install express multer xlsx mysql2
 npm install express multer xlsx mariadb
 npm install dotenv
-
+npm i express-validator
   ```
 
 ## Estructura del proyecto

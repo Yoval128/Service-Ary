@@ -7,6 +7,7 @@ router.get("/", (req, res) => {
   res.send("Ruta de tarjetas RFID funcionando");
 });
 
+
 // 📌 Obtener todas las tarjetas RFID
 router.get("/rfid-list", (req, res) => {
   connection.query("SELECT * FROM tarjetas_rfid", (err, results) => {
@@ -16,6 +17,30 @@ router.get("/rfid-list", (req, res) => {
     res.json(results);
   });
 });
+
+// 📌 Obtener tarjeta RFID por ID_Tarjeta_RFID
+router.get("/rfid/:id", (req, res) => {
+  const {id} = req.params;
+
+  connection.query(
+      "SELECT * FROM tarjetas_rfid WHERE ID_Tarjeta_RFID = ?",
+      [id],
+      (err, results) => {
+          if (err) {
+              console.error("Error al obtener la tarjeta RFID:", err);
+              res.status(500).json({error: "Error al obtener la tarjeta RFID"});
+              return;
+          }
+
+          if (results.length === 0) {
+              return res.status(404).json({error: "Tarjeta RFID no encontrada"});
+          }
+
+          res.status(200).json(results[0]);
+      }
+  );
+});
+
 
 // 📌 Registrar una nueva tarjeta RFID
 router.post("/register-rfid", (req, res) => {

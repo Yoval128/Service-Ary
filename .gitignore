@@ -1,0 +1,36 @@
+# Node.js modules
+node_modules/
+
+# Archivos de configuración de log
+*.log
+
+# Dependencias de producción
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Archivos de entornos
+
+
+# Archivos de compilación
+/dist
+/build
+
+# Directorios de IDEs y editores de texto
+.vscode/
+.idea/
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+
+# Carpeta de pruebas o cobertura
+coverage/
+
+# Archivos generados por el sistema de pruebas o linter
+*.test.js
+*.spec.js
+
+# Otros archivos temporales
+*.swp
+*.swo

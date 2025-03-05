@@ -21,7 +21,7 @@ router.get("/list-users", (req, res) => {
 });
 
 // 📌 Obtener un usuario por ID
-router.get("/users/:id", (req, res) => {
+router.get("/user/:id", (req, res) => {
     const {id} = req.params;
 
     connection.query(
@@ -149,7 +149,7 @@ router.put("/update-user/:id", async (req, res) => {
     let updateFields = [];
 
     if (Nombre) {
-        updateFields.push("nombre_usuario = ?");
+        updateFields.push("Nombre = ?");
         values.push(Nombre);
     }
 
