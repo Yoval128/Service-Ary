@@ -10,6 +10,7 @@ yarn-debug.log*
 yarn-error.log*
 
 # Archivos de entornos
+.env
 
 
 # Archivos de compilación
