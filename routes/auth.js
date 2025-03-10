@@ -40,6 +40,7 @@ router.post("/login", (req, res) => {
 
       console.log("Contraseña ingresada:", contraseña);
       console.log("Contraseña almacenada en BD:", usuario.Contraseña);
+    
 
       // Comparar la contraseña ingresada con la almacenada
       const isMatch = await bcrypt.compare(contraseña, usuario.Contraseña);
@@ -64,6 +65,7 @@ router.post("/login", (req, res) => {
 
       // Devolver la respuesta con el token y los datos del usuario
       console.log("Login exitoso para usuario:", usuario.Correo);
+      console.log("Con el rol de: ", usuario.Cargo);
       return res.json({
         message: "Login exitoso",
         token,
