@@ -10,6 +10,17 @@ Antes de comenzar, asegúrate de tener instalados los siguientes programas:
 - [npm](https://www.npmjs.com/)
 - Base de datos SQL (MySQL o MariaDB)
 
+## 📦 Creacion del .env
+Realizar la creacion de env para agregar las variables globales como lo es la base de datos, contraseña, ect
+* Ejemplo:
+    DB_HOST=localhost
+    DB_USER=root
+    DB_PASSWORD=
+    DB_DATABASE=ary
+
+    JWT_SECRET=jf8wJf#kG$9sG7%3kL!sdF4Q1
+    
+
 ## 📦 Instalación de las Dependencias
 
 Sigue estos pasos para configurar el entorno del proyecto:
