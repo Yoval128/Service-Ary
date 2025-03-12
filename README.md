@@ -10,9 +10,9 @@ Antes de comenzar, asegúrate de tener instalados los siguientes programas:
 - [npm](https://www.npmjs.com/)
 - Base de datos SQL (MySQL o MariaDB)
 
-## 📦 Creacion del .env
+## 📦 Creacion del .env local para trabajo local
 
-Realizar la creacion de env para agregar las variables globales como lo es la base de datos, contraseña, ect
+Realizar la creacion de .env.local para agregar las variables globales como lo es la base de datos, contraseña, ect
 
 - Ejemplo:
   DB_HOST=localhost
@@ -26,6 +26,8 @@ Realizar la creacion de env para agregar las variables globales como lo es la ba
   TWILIO_AUTH_TOKEN=
   TWILIO_PHONE_NUMBER=
   ADMIN_PHONE_NUMBER=
+
+* !!El env que se subira a el servidor debera se bajo el env.produccion y ese no se debe modificar directamente
 
 ## 📦 Instalación de las Dependencias
 
