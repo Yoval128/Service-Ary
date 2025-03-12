@@ -19,6 +19,10 @@ app.use(express.json());
 // Rutas de la API
 app.use("/api", routes);
 
+app.get('/api', (req, res) => {
+  res.send("Api Ary funcionando");
+});
+
 // Puerto
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
