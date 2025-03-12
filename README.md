@@ -11,15 +11,21 @@ Antes de comenzar, asegúrate de tener instalados los siguientes programas:
 - Base de datos SQL (MySQL o MariaDB)
 
 ## 📦 Creacion del .env
-Realizar la creacion de env para agregar las variables globales como lo es la base de datos, contraseña, ect
-* Ejemplo:
-    DB_HOST=localhost
-    DB_USER=root
-    DB_PASSWORD=
-    DB_DATABASE=ary
 
-    JWT_SECRET=jf8wJf#kG$9sG7%3kL!sdF4Q1
-    
+Realizar la creacion de env para agregar las variables globales como lo es la base de datos, contraseña, ect
+
+- Ejemplo:
+  DB_HOST=localhost
+  DB_USER=root
+  DB_PASSWORD=
+  DB_DATABASE=ary
+  JWT_SECRET=jf8wJf#kG$9sG7%3kL!sdF4Q1
+  FRONTEND_URL=http://localhost:8081
+
+  TWILIO_ACCOUNT_SID=
+  TWILIO_AUTH_TOKEN=
+  TWILIO_PHONE_NUMBER=
+  ADMIN_PHONE_NUMBER=
 
 ## 📦 Instalación de las Dependencias
 
