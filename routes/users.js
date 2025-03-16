@@ -4,6 +4,8 @@ const router = express.Router();
 const connection = require("../db/connection");
 
 const { sendWhatsAppMessage } = require("../services/whatsappService");
+const PDFDocument = require("pdfkit");
+const fs = require("fs");
 
 // 📌 Ruta de prueba
 router.get("/", (req, res) => {
@@ -21,7 +23,6 @@ router.get("/list-users", (req, res) => {
     res.status(200).json(results);
   });
 });
-
 
 // 📌 Actualizar un usuario por ID
 router.put("/update-user/:id", async (req, res) => {
@@ -99,20 +100,17 @@ router.put("/update-user/:id", async (req, res) => {
 
       if (results.affectedRows === 0) {
         return res.status(404).json({ error: "Usuario no encontrado" });
-      }   
+      }
 
-      res
-        .status(200)
-        .json({
-          message: "Usuario actualizado exitosamente y notificación enviada.",
-        });
+      res.status(200).json({
+        message: "Usuario actualizado exitosamente y notificación enviada.",
+      });
     });
   } catch (error) {
     console.error("Error al procesar la solicitud:", error);
     res.status(500).json({ error: "Error interno del servidor" });
   }
 });
-
 
 // 📌 Actualizar un usuario por ID Ademas de una Alerta por whatsapp
 router.put("/update-user-alert/:id", async (req, res) => {
@@ -193,20 +191,23 @@ router.put("/update-user-alert/:id", async (req, res) => {
       }
 
       if (Telefono) {
-        const message = `Hola ${Nombre || "Usuario"}, tus datos han sido actualizados correctamente en el sistema. Si no reconoces esta operación, comunicate con el área de sistemas.`;
+        const message = `Hola ${
+          Nombre || "Usuario"
+        }, tus datos han sido actualizados correctamente en el sistema. Si no reconoces esta operación, comunicate con el área de sistemas.`;
         try {
           await sendWhatsAppMessage(Telefono, message);
         } catch (error) {
           console.error("Error al enviar el mensaje de WhatsApp:", error);
-          return res.status(500).json({ error: "Usuario actualizado, pero hubo un error al enviar el mensaje" });
+          return res.status(500).json({
+            error:
+              "Usuario actualizado, pero hubo un error al enviar el mensaje",
+          });
         }
-      }      
+      }
 
-      res
-        .status(200)
-        .json({
-          message: "Usuario actualizado exitosamente y notificación enviada.",
-        });
+      res.status(200).json({
+        message: "Usuario actualizado exitosamente y notificación enviada.",
+      });
     });
   } catch (error) {
     console.error("Error al procesar la solicitud:", error);
@@ -428,40 +429,75 @@ router.put("/update-user/:id", async (req, res) => {
 router.delete("/delete-user/:id", (req, res) => {
   const { id } = req.params;
 
+  // Eliminar los registros en movimientos_documentos que hacen referencia al usuario
   connection.query(
-    "DELETE FROM accesos WHERE ID_Usuario = ?",
+    "DELETE FROM movimientos_documentos WHERE ID_Usuario = ?",
     [id],
     (err, results) => {
       if (err) {
-        console.error("Error al eliminar los accesos:", err);
-        return res.status(500).json({ error: "Error al eliminar los accesos" });
+        console.error("Error al eliminar los movimientos de documentos:", err);
+        return res
+          .status(500)
+          .json({ error: "Error al eliminar los movimientos de documentos" });
       }
 
+      // Eliminar los registros de administradores relacionados con el usuario
       connection.query(
-        "DELETE FROM usuarios WHERE ID_Usuario = ?",
+        "DELETE FROM administradores WHERE ID_Usuario = ?",
         [id],
         (err, results) => {
           if (err) {
-            console.error("Error al eliminar el usuario:", err);
+            console.error("Error al eliminar el administrador:", err);
             return res
               .status(500)
-              .json({ error: "Error al eliminar el usuario" });
+              .json({ error: "Error al eliminar el administrador" });
           }
 
-          if (results.affectedRows === 0) {
-            return res.status(404).json({ error: "Usuario no encontrado" });
-          }
+          // Eliminar los accesos del usuario
+          connection.query(
+            "DELETE FROM accesos WHERE ID_Usuario = ?",
+            [id],
+            (err, results) => {
+              if (err) {
+                console.error("Error al eliminar los accesos:", err);
+                return res
+                  .status(500)
+                  .json({ error: "Error al eliminar los accesos" });
+              }
 
-          res
-            .status(200)
-            .json({ message: "Usuario y accesos eliminados exitosamente" });
+              // Finalmente, eliminar el usuario de la tabla usuarios
+              connection.query(
+                "DELETE FROM usuarios WHERE ID_Usuario = ?",
+                [id],
+                (err, results) => {
+                  if (err) {
+                    console.error("Error al eliminar el usuario:", err);
+                    return res
+                      .status(500)
+                      .json({ error: "Error al eliminar el usuario" });
+                  }
+
+                  if (results.affectedRows === 0) {
+                    return res
+                      .status(404)
+                      .json({ error: "Usuario no encontrado" });
+                  }
+
+                  res.status(200).json({
+                    message:
+                      "Usuario, accesos, administrador y movimientos eliminados exitosamente",
+                  });
+                }
+              );
+            }
+          );
         }
       );
     }
   );
 });
 
-// 📌 Obtener el número de usuarios activos
+// 📌 Obtener el número de usuarios activos (Estadisticas)
 router.get("/active-users", (req, res) => {
   connection.query(
     "SELECT COUNT(*) AS activeUsers FROM usuarios",
@@ -475,6 +511,117 @@ router.get("/active-users", (req, res) => {
       }
 
       res.status(200).json({ activeUsers: results[0].activeUsers });
+    }
+  );
+});
+
+// 📌 Exportacion a PDF
+
+router.get("/generate-pdf", async (req, res) => {
+  try {
+    // Recuperar todos los usuarios
+    connection.query("SELECT * FROM usuarios", (err, users) => {
+      if (err) {
+        console.error("Error al obtener los usuarios:", err);
+        return res.status(500).json({ error: "Error al obtener los usuarios" });
+      }
+
+      const doc = new PDFDocument();
+
+      // Configurar la fecha actual
+      const currentDate = new Date().toLocaleDateString();
+
+      // Título con la fecha de exportación
+      doc
+        .fontSize(12)
+        .text(`Lista de Usuarios - Exportado el: ${currentDate}`, {
+          align: "center",
+        });
+      doc.moveDown(1);
+
+      // Encabezado de la tabla sin la columna "Contraseña"
+      const header = [
+        "ID_Usuario",
+        "Nombre",
+        "Apellido",
+        "Cargo",
+        "Correo",
+        "Telefono",
+        "ID_Tarjeta_RFID",
+      ];
+
+      // Ancho de cada columna (ajustado para ser aún más pequeño)
+      const columnWidth = [30, 80, 80, 70, 150, 80, 80]; // Columnas más estrechas
+      const tableTop = 140; // Posición para la tabla
+      let currentY = tableTop;
+
+      // Dibujar encabezado de la tabla
+      header.forEach((title, index) => {
+        doc
+          .fontSize(8)
+          .text(
+            title,
+            50 + columnWidth.slice(0, index).reduce((a, b) => a + b, 0),
+            currentY
+          );
+      });
+      currentY += 15;
+
+      // Dibujar las filas sin la columna "Contraseña"
+      users.forEach((user) => {
+        const row = [
+          user.ID_Usuario,
+          user.Nombre,
+          user.Apellido,
+          user.Cargo,
+          user.Correo,
+          user.Telefono,
+          user.ID_Tarjeta_RFID,
+        ];
+
+        row.forEach((value, index) => {
+          // Añadir cada valor de la fila con la posición calculada
+          doc
+            .fontSize(7)
+            .text(
+              value,
+              50 + columnWidth.slice(0, index).reduce((a, b) => a + b, 0),
+              currentY
+            );
+        });
+        currentY += 12; // Reducir el espaciado entre filas
+      });
+
+      // Establecer el nombre del archivo y enviarlo como respuesta
+      const filename = "usuarios.pdf";
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="${filename}"`
+      );
+
+      // Pipestream del documento PDF al cliente
+      doc.pipe(res);
+      doc.end();
+    });
+  } catch (error) {
+    console.error("Error generando el PDF:", error);
+    res.status(500).json({ error: "Error generando el PDF" });
+  }
+});
+
+// Cargos (Estadisticas)
+router.get("/cargos", async (req, res) => {
+  connection.query(
+    "SELECT Cargo, COUNT(*) AS cantidad FROM usuarios GROUP BY Cargo",
+    (err, results) => {
+      if (err) {
+        console.error("Error al obtener los cargos:", err);
+        res.status(500).json({ error: "Error al obtener los cargos" });
+        return;
+      }
+
+      res.status(200).json(results); // Devuelve directamente el array de resultados
     }
   );
 });

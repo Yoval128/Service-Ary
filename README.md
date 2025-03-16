@@ -74,6 +74,8 @@ npm install twilio
 ```bash
 npm install cors
 ```
+- **Exportacion a PDF**
+npm install pdfkit
 
 ## ▶️ Ejecución del Proyecto
 

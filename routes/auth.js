@@ -3,7 +3,8 @@ const express = require("express");
 const router = express.Router();
 const connection = require("../db/connection");
 const bcrypt = require("bcryptjs");
-const JWT_SECRET = process.env.JWT_SECRET;
+
+console.log("Rutas de Auth");
 
 // Ruta de prueba
 router.get("/", (req, res) => {
@@ -12,9 +13,9 @@ router.get("/", (req, res) => {
 
 // Ruta de autenticación (Login)
 router.post("/login", (req, res) => {
-  const { correo, contraseña } = req.body;
+  const { correo, contrasena } = req.body;
 
-  if (!correo || !contraseña) {
+  if (!correo || !contrasena) {
     return res
       .status(400)
       .json({ error: "Correo y contraseña son requeridos" });
@@ -38,12 +39,11 @@ router.post("/login", (req, res) => {
 
       const usuario = results[0];
 
-      console.log("Contraseña ingresada:", contraseña);
+      console.log("Contraseña ingresada:", contrasena);
       console.log("Contraseña almacenada en BD:", usuario.Contraseña);
-    
 
       // Comparar la contraseña ingresada con la almacenada
-      const isMatch = await bcrypt.compare(contraseña, usuario.Contraseña);
+      const isMatch = await bcrypt.compare(contrasena, usuario.Contraseña);
       console.log("¿Coincide?", isMatch);
 
       if (!isMatch) {
@@ -52,14 +52,14 @@ router.post("/login", (req, res) => {
           .json({ error: "Correo o contraseña incorrectos" });
       }
 
-      // Generar token JWT
+      // Generar token JWT usando JWT_SECRET desde las variables de entorno
       const token = jwt.sign(
         {
           id: usuario.ID_Usuario,
           correo: usuario.Correo,
           cargo: usuario.Cargo,
         },
-        JWT_SECRET,
+        process.env.JWT_SECRET, // Aquí usamos process.env.JWT_SECRET
         { expiresIn: "2h" }
       );
 

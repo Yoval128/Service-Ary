@@ -114,7 +114,12 @@ router.get("/rfid-list-disponible", (req, res) => {
 // 📌 Obtener el número de rfidCards activos
 router.get("/active-rfidCards", (req, res) => {
   connection.query(
-    "SELECT COUNT(*) AS activeRfidCards FROM tarjetas_rfid",
+    `
+    SELECT 
+      COUNT(CASE WHEN estado = 'activo' THEN 1 END) AS activeRfidCards,
+      COUNT(CASE WHEN estado = 'inactivo' THEN 1 END) AS inactiveRfidCards
+    FROM tarjetas_rfid
+    `,
     (err, results) => {
       if (err) {
         console.error("Error al obtener la cantidad de tarjetas RFID:", err);
@@ -124,7 +129,10 @@ router.get("/active-rfidCards", (req, res) => {
         return;
       }
 
-      res.status(200).json({ activeRfidCards: results[0].activeRfidCards });
+      res.status(200).json({
+        activeRfidCards: results[0].activeRfidCards,
+        inactiveRfidCards: results[0].inactiveRfidCards
+      });
     }
   );
 });

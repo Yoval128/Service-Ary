@@ -2,6 +2,7 @@ const express = require("express");
 const connection = require("../db/connection");
 const router = express.Router();
 
+console.log("Rutas de accesos");
 // 📌 Ruta de prueba
 router.get("/", (req, res) => {
   res.send("Ruta de Accesos funcionando");
