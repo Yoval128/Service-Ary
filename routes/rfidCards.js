@@ -1,20 +1,26 @@
 const express = require("express");
 const connection = require("../db/connection");
 const router = express.Router();
-const { SerialPort, ReadlineParser } = require("serialport");
-const moment = require("moment"); // 📌 Agregar para manejar fechas y horas
+const { serialPort, parser } = require("./serialPort"); // Importamos las configuraciones de serialPort.js
+const moment = require("moment"); // Para manejar fechas y horas
 
-const serialPort = new SerialPort({
-  path: "COM3",
-  baudRate: 9600,
+let lastRfid = "";
+
+parser.on("data", (data) => {
+  data = data.trim();
+  if (data.startsWith("{")) {
+    try {
+      const jsonData = JSON.parse(data);
+      lastRfid = jsonData.rfid;
+    } catch (err) {
+      console.error("Error al procesar los datos del RFID:", err);
+    }
+  }
 });
 
-const parser = serialPort.pipe(new ReadlineParser({ delimiter: "\n" }));
-
-
-let Id_RFID = "";
-
-// Lógica para manejar la lectura de los datos del puerto serie
+router.get("/last-rfid", (req, res) => {
+  res.json({ rfid: lastRfid });
+});
 
 parser.on("data", (data) => {
   data = data.trim(); // 🛠 Elimina espacios en blanco o saltos de línea
@@ -25,7 +31,14 @@ parser.on("data", (data) => {
     console.warn("Datos ignorados (no es JSON):", data);
     return; // 🛑 Ignora los mensajes que no son JSON
   }
-  
+
+  // Aquí procesamos los datos de la tarjeta RFID y los almacenamos
+  try {
+    const jsonData = JSON.parse(data); // Convierte los datos a JSON
+    const codigoRFID = jsonData.rfid; // Extrae el código RFID
+  } catch (err) {
+    console.error("Error al procesar los datos del RFID:", err);
+  }
 });
 
 // 📌 Ruta de prueba
@@ -33,6 +46,31 @@ router.get("/", (req, res) => {
   res.send("Ruta de tarjetas RFID funcionando");
 });
 
+// Ruta para registrar una nueva tarjeta RFID con OIT
+router.post("/register-rfid", (req, res) => {
+  const { Codigo_RFID, Estado } = req.body;
+  if (!Codigo_RFID || !Estado) {
+    return res.status(400).json({ error: "Faltan datos requeridos" });
+  }
+  connection.query(
+    "INSERT INTO tarjetas_rfid (Codigo_RFID, Estado) VALUES (?, ?)", // Usa `Codigo_RFID` y `Estado`
+    [Codigo_RFID, Estado], // Usa `Codigo_RFID` y `Estado`
+    (err, result) => {
+      if (err) {
+        console.error("Error al registrar tarjeta RFID:", err);
+        return res
+          .status(500)
+          .json({ error: "Error al registrar tarjeta RFID" });
+      } else {
+        console.log("Tarjeta RFID registrada con éxito:", result.insertId);
+        return res.json({
+          message: "Tarjeta RFID registrada con éxito",
+          id: result.insertId,
+        });
+      }
+    }
+  );
+});
 
 // 📌 Obtener todas las tarjetas RFID
 router.get("/rfid-list", (req, res) => {
@@ -46,30 +84,29 @@ router.get("/rfid-list", (req, res) => {
 
 // 📌 Obtener tarjeta RFID por ID_Tarjeta_RFID
 router.get("/rfid/:id", (req, res) => {
-  const {id} = req.params;
+  const { id } = req.params;
 
   connection.query(
-      "SELECT * FROM tarjetas_rfid WHERE ID_Tarjeta_RFID = ?",
-      [id],
-      (err, results) => {
-          if (err) {
-              console.error("Error al obtener la tarjeta RFID:", err);
-              res.status(500).json({error: "Error al obtener la tarjeta RFID"});
-              return;
-          }
-
-          if (results.length === 0) {
-              return res.status(404).json({error: "Tarjeta RFID no encontrada"});
-          }
-
-          res.status(200).json(results[0]);
+    "SELECT * FROM tarjetas_rfid WHERE ID_Tarjeta_RFID = ?",
+    [id],
+    (err, results) => {
+      if (err) {
+        console.error("Error al obtener la tarjeta RFID:", err);
+        res.status(500).json({ error: "Error al obtener la tarjeta RFID" });
+        return;
       }
+
+      if (results.length === 0) {
+        return res.status(404).json({ error: "Tarjeta RFID no encontrada" });
+      }
+
+      res.status(200).json(results[0]);
+    }
   );
 });
 
-
 // 📌 Registrar una nueva tarjeta RFID
-router.post("/register-rfid", (req, res) => {
+/* router.post("/register-rfid", (req, res) => {
   const { Codigo_RFID, Estado } = req.body;
   if (!Codigo_RFID || !Estado) {
     return res.status(400).json({ error: "Faltan datos requeridos" });
@@ -86,6 +123,7 @@ router.post("/register-rfid", (req, res) => {
     }
   );
 });
+ */
 
 // 📌 Actualizar el estado de una tarjeta RFID
 router.put("/update-rfid/:id", (req, res) => {
@@ -157,7 +195,7 @@ router.get("/active-rfidCards", (req, res) => {
 
       res.status(200).json({
         activeRfidCards: results[0].activeRfidCards,
-        inactiveRfidCards: results[0].inactiveRfidCards
+        inactiveRfidCards: results[0].inactiveRfidCards,
       });
     }
   );
