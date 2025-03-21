@@ -77,6 +77,11 @@ npm install cors
 - **Exportacion a PDF**
 npm install pdfkit
 
+- **Comunicacion con arduino**
+```bash
+npm install serialport express cors body-parser
+```
+
 ## ▶️ Ejecución del Proyecto
 
 1. Asegúrate de tener tu base de datos configurada y el archivo `.env` con las credenciales correspondientes.

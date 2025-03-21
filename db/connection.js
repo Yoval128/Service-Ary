@@ -1,9 +1,13 @@
 const mysql = require('mysql');
 
 const connection = mysql.createConnection({
-  host: 'db.xdn.com.mx',
+/*   host: 'db.xdn.com.mx',
   user: 'ary',
   password: 'BkJaHuM0dJjB8Ilo',
+  database: 'ary' */
+  host: 'localhost',
+  user: 'root',
+  password: '',
   database: 'ary'
 });
 

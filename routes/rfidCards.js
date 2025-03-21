@@ -1,6 +1,32 @@
 const express = require("express");
 const connection = require("../db/connection");
 const router = express.Router();
+const { SerialPort, ReadlineParser } = require("serialport");
+const moment = require("moment"); // 📌 Agregar para manejar fechas y horas
+
+const serialPort = new SerialPort({
+  path: "COM3",
+  baudRate: 9600,
+});
+
+const parser = serialPort.pipe(new ReadlineParser({ delimiter: "\n" }));
+
+
+let Id_RFID = "";
+
+// Lógica para manejar la lectura de los datos del puerto serie
+
+parser.on("data", (data) => {
+  data = data.trim(); // 🛠 Elimina espacios en blanco o saltos de línea
+
+  console.log("Datos recibidos:", data); // Verifica lo que se recibe
+
+  if (!data.startsWith("{")) {
+    console.warn("Datos ignorados (no es JSON):", data);
+    return; // 🛑 Ignora los mensajes que no son JSON
+  }
+  
+});
 
 // 📌 Ruta de prueba
 router.get("/", (req, res) => {
