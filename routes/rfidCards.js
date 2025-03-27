@@ -2,11 +2,26 @@ const express = require("express");
 const connection = require("../db/connection");
 const router = express.Router();
 
+
+
 // 📌 Ruta de prueba
 router.get("/", (req, res) => {
   res.send("Ruta de tarjetas RFID funcionando");
 });
 
+router.post("/", (req, res) => {
+  const { Codigo_RFID } = req.body;
+  
+  if (!Codigo_RFID) {
+      return res.status(400).json({ error: "Código RFID requerido" });
+  }
+
+  // Emitir el código RFID a todos los clientes conectados
+  const io = req.app.get('io');
+  io.emit('newRFID', { Codigo_RFID });
+  
+  res.status(200).json({ message: "Código RFID recibido" });
+});
 
 // 📌 Obtener todas las tarjetas RFID
 router.get("/rfid-list", (req, res) => {
