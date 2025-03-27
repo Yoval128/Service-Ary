@@ -626,4 +626,27 @@ router.get("/cargos", async (req, res) => {
   );
 });
 
+// Ultimo usuario (Estadisticas)
+router.get("/last-user", async (req, res) => {
+  connection.query(
+    "SELECT * FROM usuarios ORDER BY ID_Usuario DESC LIMIT 1",
+    (err, results) => {
+      if (err) {
+        console.error("Error al obtener el último usuario:", err);
+        res.status(500).json({ error: "Error al obtener el último usuario" });
+        return;
+      }
+
+      if (results.length === 0) {
+        return res.status(404).json({ error: "No se encontró un usuario" });
+      }
+
+      res.status(200).json(results[0]); // Devuelve el último usuario registrado
+    }
+  );
+});
+
+
+
+
 module.exports = router;
