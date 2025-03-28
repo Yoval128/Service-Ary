@@ -641,7 +641,7 @@ router.get("/last-user", async (req, res) => {
         return res.status(404).json({ error: "No se encontró un usuario" });
       }
 
-      res.status(200).json(results[0]); // Devuelve el último usuario registrado
+      res.status(200).json(results[0]);
     }
   );
 });

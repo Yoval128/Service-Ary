@@ -152,4 +152,21 @@ router.get("/active-rfidCards", (req, res) => {
   );
 });
 
+
+router.get("/last-rfidCards", (req, res) => {
+  connection.query(``, (err, results) => {
+    if (err) {
+      console.error("Error al obtener la tarjeta RFID:", err);
+      res
+        .status(500)
+        .json({ error: "Error al obtener la tarjeta RFID" });
+      return;
+    }
+    res.status(200).json({
+      totalRfidCards: results[0].totalRfidCards,
+    });
+  });
+});
+
+
 module.exports = router;

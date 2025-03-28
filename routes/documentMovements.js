@@ -116,4 +116,38 @@ router.delete("/delete-movement/:id", (req, res) => {
   );
 });
 
+// Ultimo usuario (Estadisticas)
+router.get("/last-movement", async (req, res) => {
+  connection.query(
+    "SELECT"+
+ " u.Nombre AS Nombre_Usuario, "+
+  "u.Apellido AS Apellido_Usuario, "+
+  "d.Nombre_Documento, "+
+  "md.Fecha_Hora_Salida, "+
+  "md.Estado "+
+"FROM "+
+ "movimientos_documentos md "+
+"JOIN "+
+  "usuarios u ON md.ID_Usuario = u.ID_Usuario "+
+"JOIN "+
+  "documentos d ON md.ID_Documento = d.ID_Documento "+
+"ORDER BY "+
+  "md.ID_Movimiento DESC "+
+"LIMIT 1;",
+    (err, results) => {
+      if (err) {
+        console.error("Error al obtener el último usuario:", err);
+        res.status(500).json({ error: "Error al obtener el último usuario" });
+        return;
+      }
+
+      if (results.length === 0) {
+        return res.status(404).json({ error: "No se encontró un usuario" });
+      }
+
+      res.status(200).json(results[0]);
+    }
+  );
+});
+
 module.exports = router;
