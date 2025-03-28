@@ -4,7 +4,7 @@ const router = express.Router();
 
 
 
-// 📌 Ruta de prueba
+//  Ruta de prueba
 router.get("/", (req, res) => {
   res.send("Ruta de tarjetas RFID funcionando");
 });
@@ -23,7 +23,7 @@ router.post("/", (req, res) => {
   res.status(200).json({ message: "Código RFID recibido" });
 });
 
-// 📌 Obtener todas las tarjetas RFID
+//  Obtener todas las tarjetas RFID
 router.get("/rfid-list", (req, res) => {
   connection.query("SELECT * FROM tarjetas_rfid", (err, results) => {
     if (err) {
@@ -33,7 +33,7 @@ router.get("/rfid-list", (req, res) => {
   });
 });
 
-// 📌 Obtener tarjeta RFID por ID_Tarjeta_RFID
+//  Obtener tarjeta RFID por ID_Tarjeta_RFID
 router.get("/rfid/:id", (req, res) => {
   const {id} = req.params;
 
@@ -54,10 +54,47 @@ router.get("/rfid/:id", (req, res) => {
           res.status(200).json(results[0]);
       }
   );
+})
+
+//Obtener tarjeta con detalle del usuario asignado
+
+router.get("/detail-rfid", (req, res) => {
+  const idTarjeta = req.query.id; 
+
+  if (!idTarjeta) {
+    return res.status(400).json({ error: "ID de tarjeta RFID es requerido" });
+  }
+
+  const query = `
+    SELECT 
+      t.ID_Tarjeta_RFID, 
+      t.Codigo_RFID, 
+      t.Estado AS Estado_Tarjeta, 
+      u.ID_Usuario, 
+      u.Nombre, 
+      u.Cargo, 
+      u.Correo 
+    FROM 
+      tarjetas_rfid t
+    LEFT JOIN 
+      usuarios u ON t.ID_Tarjeta_RFID = u.ID_Tarjeta_RFID
+    WHERE 
+      t.ID_Tarjeta_RFID = ?;`;
+
+  connection.query(query, [idTarjeta], (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Error al obtener los detalles de la tarjeta" });
+    }
+    if (results.length === 0) {
+      return res.status(404).json({ message: "No se encontró la tarjeta RFID con ese ID" });
+    }
+    res.json(results[0]); 
+  });
 });
 
 
-// 📌 Registrar una nueva tarjeta RFID
+// Registrar una nueva tarjeta RFID
 router.post("/register-rfid", (req, res) => {
   const { Codigo_RFID, Estado } = req.body;
   if (!Codigo_RFID || !Estado) {
@@ -76,7 +113,7 @@ router.post("/register-rfid", (req, res) => {
   );
 });
 
-// 📌 Actualizar el estado de una tarjeta RFID
+//  Actualizar el estado de una tarjeta RFID
 router.put("/update-rfid/:id", (req, res) => {
   const { Estado } = req.body;
   const { id } = req.params;
@@ -97,7 +134,7 @@ router.put("/update-rfid/:id", (req, res) => {
   );
 });
 
-// 📌 Eliminar una tarjeta RFID
+//  Eliminar una tarjeta RFID
 router.delete("/delete-rfid/:id", (req, res) => {
   const { id } = req.params;
 
@@ -113,7 +150,7 @@ router.delete("/delete-rfid/:id", (req, res) => {
   );
 });
 
-// 📌 Obtener todas las tarjetas RFID Disponibles
+//  Obtener todas las tarjetas RFID Disponibles
 router.get("/rfid-list-disponible", (req, res) => {
   connection.query(
     "SELECT * FROM tarjetas_rfid WHERE Estado = 'Activo' AND ID_Tarjeta_RFID NOT IN (SELECT ID_Tarjeta_RFID FROM usuarios WHERE ID_Tarjeta_RFID IS NOT NULL)",
@@ -126,7 +163,7 @@ router.get("/rfid-list-disponible", (req, res) => {
   );
 });
 
-// 📌 Obtener el número de rfidCards activos
+//  Obtener el número de rfidCards activos
 router.get("/active-rfidCards", (req, res) => {
   connection.query(
     `
@@ -153,18 +190,50 @@ router.get("/active-rfidCards", (req, res) => {
 });
 
 
-router.get("/last-rfidCards", (req, res) => {
-  connection.query(``, (err, results) => {
+router.get("/last-rfidCard", (req, res) => {
+  const query = `
+    SELECT 
+        t.ID_Tarjeta_RFID, 
+        t.Codigo_RFID, 
+        t.Estado AS Estado_Tarjeta,
+        u.ID_Usuario,
+        CONCAT(u.Nombre, ' ', u.Apellido) AS Nombre_Completo,
+        u.Cargo,
+        u.Correo,
+        u.Telefono,
+        u.Estado AS Estado_Usuario
+    FROM tarjetas_rfid t
+    LEFT JOIN usuarios u ON t.ID_Tarjeta_RFID = u.ID_Tarjeta_RFID
+    ORDER BY t.ID_Tarjeta_RFID DESC
+    LIMIT 1;
+  `;
+
+  connection.query(query, (err, results) => {
     if (err) {
-      console.error("Error al obtener la tarjeta RFID:", err);
-      res
-        .status(500)
-        .json({ error: "Error al obtener la tarjeta RFID" });
-      return;
+      console.error("Error al obtener la última tarjeta RFID:", err);
+      return res.status(500).json({ error: "Error al obtener la tarjeta RFID" });
     }
-    res.status(200).json({
-      totalRfidCards: results[0].totalRfidCards,
-    });
+
+    if (results.length === 0) {
+      return res.status(404).json({ message: "No hay tarjetas RFID registradas" });
+    }
+
+    const tarjeta = results[0];
+    const response = {
+      ID_Tarjeta_RFID: tarjeta.ID_Tarjeta_RFID,
+      Codigo_RFID: tarjeta.Codigo_RFID,
+      Estado_Tarjeta: tarjeta.Estado_Tarjeta,
+      Usuario_Asignado: tarjeta.ID_Usuario ? {
+        ID_Usuario: tarjeta.ID_Usuario,
+        Nombre_Completo: tarjeta.Nombre_Completo,
+        Cargo: tarjeta.Cargo,
+        Correo: tarjeta.Correo,
+        Telefono: tarjeta.Telefono,
+        Estado_Usuario: tarjeta.Estado_Usuario
+      } : null
+    };
+
+    res.status(200).json(response);
   });
 });
 

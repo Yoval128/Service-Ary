@@ -217,26 +217,35 @@ router.put("/update-user-alert/:id", async (req, res) => {
 
 // 📌 Obtener un usuario por ID
 router.get("/user/:id", (req, res) => {
-  const { id } = req.params;
+  const userId = req.params.id;
 
-  connection.query(
-    "SELECT * FROM usuarios WHERE ID_Usuario = ?",
-    [id],
-    (err, results) => {
+  const query = `
+      SELECT 
+          u.ID_Usuario, 
+          u.Nombre, 
+          u.Apellido, 
+          u.Cargo, 
+          u.Correo, 
+          u.Telefono, 
+          u.Estado, 
+          t.Codigo_RFID
+      FROM usuarios u
+      LEFT JOIN tarjetas_rfid t ON u.ID_Tarjeta_RFID = t.ID_Tarjeta_RFID
+      WHERE u.ID_Usuario = ?;
+  `;
+
+  connection.query(query, [userId], (err, results) => {
       if (err) {
-        console.error("Error al obtener el usuario:", err);
-        res.status(500).json({ error: "Error al obtener el usuario" });
-        return;
+          console.error(err);
+          return res.status(500).json({ error: "Error al obtener los detalles del usuario" });
       }
-
       if (results.length === 0) {
-        return res.status(404).json({ error: "Usuario no encontrado" });
+          return res.status(404).json({ message: "Usuario no encontrado" });
       }
-
-      res.status(200).json(results[0]);
-    }
-  );
+      res.json(results[0]); 
+  });
 });
+
 
 // 📌 Registrar un nuevo usuario
 router.post("/register-user", async (req, res) => {
