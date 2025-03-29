@@ -7,12 +7,12 @@ const { sendWhatsAppMessage } = require("../services/whatsappService");
 const PDFDocument = require("pdfkit");
 const fs = require("fs");
 
-// 📌 Ruta de prueba
+// Ruta de prueba
 router.get("/", (req, res) => {
   res.send("Ruta de Usuarios funcionando");
 });
 
-// 📌 Obtener todos los usuarios
+// Obtener todos los usuarios
 router.get("/list-users", (req, res) => {
   connection.query("SELECT * FROM usuarios", (err, results) => {
     if (err) {
@@ -24,7 +24,7 @@ router.get("/list-users", (req, res) => {
   });
 });
 
-// 📌 Actualizar un usuario por ID
+// Actualizar un usuario por ID
 router.put("/update-user/:id", async (req, res) => {
   const { id } = req.params;
   const {
@@ -112,7 +112,7 @@ router.put("/update-user/:id", async (req, res) => {
   }
 });
 
-// 📌 Actualizar un usuario por ID Ademas de una Alerta por whatsapp
+// Actualizar un usuario por ID Ademas de una Alerta por whatsapp
 router.put("/update-user-alert/:id", async (req, res) => {
   const { id } = req.params;
   const {
@@ -215,7 +215,7 @@ router.put("/update-user-alert/:id", async (req, res) => {
   }
 });
 
-// 📌 Obtener un usuario por ID
+// Obtener un usuario por ID
 router.get("/user/:id", (req, res) => {
   const userId = req.params.id;
 
@@ -247,7 +247,7 @@ router.get("/user/:id", (req, res) => {
 });
 
 
-// 📌 Registrar un nuevo usuario
+// Registrar un nuevo usuario
 router.post("/register-user", async (req, res) => {
   const {
     Nombre,
@@ -343,7 +343,7 @@ router.post("/register-user", async (req, res) => {
   }
 });
 
-// 📌 Actualizar un usuario por ID
+// Actualizar un usuario por ID
 router.put("/update-user/:id", async (req, res) => {
   const { id } = req.params;
   const {
@@ -434,7 +434,7 @@ router.put("/update-user/:id", async (req, res) => {
   }
 });
 
-// 📌 Eliminar un usuario por ID
+// Eliminar un usuario por ID
 router.delete("/delete-user/:id", (req, res) => {
   const { id } = req.params;
 
@@ -506,7 +506,7 @@ router.delete("/delete-user/:id", (req, res) => {
   );
 });
 
-// 📌 Obtener el número de usuarios activos (Estadisticas)
+// Obtener el número de usuarios activos (Estadisticas)
 router.get("/active-users", (req, res) => {
   connection.query(
     "SELECT COUNT(*) AS activeUsers FROM usuarios",
@@ -524,7 +524,7 @@ router.get("/active-users", (req, res) => {
   );
 });
 
-// 📌 Exportacion a PDF
+// Exportacion a PDF
 
 router.get("/generate-pdf", async (req, res) => {
   try {

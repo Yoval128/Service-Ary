@@ -2,45 +2,73 @@ const express = require("express");
 const connection = require("../db/connection");
 const router = express.Router();
 
-// 📌 Ruta de prueba
+// Ruta de prueba
 router.get("/", (req, res) => {
     res.send("Ruta de Administradores funcionando");
   });
 
-  // 📌 Ruta para obtener un administrador por ID
+// Ruta para obtener un administrador por ID con información del usuario
 router.get("/administrator/:id", (req, res) => {
   const { id } = req.params;
 
-  if (!id) {
+  if (!id.trim()) {
     return res.status(400).json({ message: "ID_Admin is required" });
   }
 
-  const query = "SELECT * FROM administradores WHERE ID_Admin = ?";
+  const query = `
+    SELECT a.ID_Admin, a.ID_Usuario, u.Nombre, u.Apellido, u.Cargo, u.Correo, u.Telefono, u.Estado
+    FROM administradores a
+    JOIN usuarios u ON a.ID_Usuario = u.ID_Usuario
+    WHERE a.ID_Admin = ?
+  `;
+
   connection.query(query, [id], (err, results) => {
     if (err) {
-      console.error(err);
+      console.error("Database error:", err);
       return res.status(500).json({ message: "Error fetching administrator" });
     }
     if (results.length === 0) {
       return res.status(404).json({ message: "Administrator not found" });
     }
-    res.json(results[0]); // Devolver el primer resultado (solo uno, ya que el ID es único)
+
+    const administratorData = {
+      ID_Admin: results[0].ID_Admin,
+      ID_Usuario: results[0].ID_Usuario,
+      Usuario: {
+        Nombre: results[0].Nombre,
+        Apellido: results[0].Apellido,
+        Cargo: results[0].Cargo,
+        Correo: results[0].Correo,
+        Telefono: results[0].Telefono,
+        Estado: results[0].Estado
+      }
+    };
+
+    return res.status(200).json(administratorData);
   });
 });
+    
 
-// 📌 Ruta Lista (Get list of administrators)
+// Ruta Lista
 router.get("/administrators-list", (req, res) => {
-  const query = "SELECT * FROM administradores";
+  const query = `
+    SELECT a.ID_Admin, a.Nivel_Permiso, 
+           u.ID_Usuario, u.Nombre, u.Apellido, u.Cargo, u.Correo, u.Telefono, u.Estado 
+    FROM administradores a
+    JOIN usuarios u ON a.ID_Usuario = u.ID_Usuario
+  `; 
+
   connection.query(query, (err, results) => {
     if (err) {
-      console.error(err);
+      console.error("Database error:", err);
       return res.status(500).json({ message: "Error fetching administrators" });
     }
-    res.json(results); 
+    res.status(200).json(results);
   });
 });
 
-// 📌 Ruta Registr (Register a new administrator)
+
+// Ruta Registr (Register a new administrator)
 router.post("/register-administrator", (req, res) => {
   const { ID_Usuario, Nivel_Permiso } = req.body;
 
@@ -59,7 +87,7 @@ router.post("/register-administrator", (req, res) => {
 });
 
  
-// 📌 Ruta de Actualización (Update an administrator)
+// Ruta de Actualización (Update an administrator)
 router.put("/update-administrator", (req, res) => {
   const { ID_Admin, Nivel_Permiso } = req.body;
 
@@ -81,7 +109,7 @@ router.put("/update-administrator", (req, res) => {
 });
 
 
-// 📌 Ruta de Eliminación (Delete an administrator)
+// Ruta de Eliminación (Delete an administrator)
 router.delete("/delete-administrator/:id", (req, res) => {
   const { id } = req.params;
 

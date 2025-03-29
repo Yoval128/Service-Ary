@@ -9,22 +9,34 @@ router.get("/", (req, res) => {
   res.send("Ruta de DocumentMovements funcionando");
 });
 
-// 📌 Obtener todos los movimientos de documentos
+// Obtener todos los movimientos de documentos
 router.get("/movements-list", (req, res) => {
-  connection.query("SELECT * FROM movimientos_documentos", (err, results) => {
-    if (err) {
-      return res.status(500).json({ error: err.message });
+  connection.query(
+    `SELECT md.*, d.Nombre_Documento
+     FROM movimientos_documentos md
+     JOIN documentos d ON md.ID_Documento = d.ID_Documento`,
+    (err, results) => {
+      if (err) {
+        console.error("Error al obtener la lista de movimientos:", err);
+        return res.status(500).json({ error: err.message });
+      }
+
+      res.json(results);
     }
-    res.json(results);
-  });
+  );
 });
 
-// 📌 Obtener un movimiento de documento por ID
+
+// Obtener un movimiento de documento por ID
 router.get("/movement/:id", (req, res) => {
   const { id } = req.params;
 
   connection.query(
-    "SELECT * FROM movimientos_documentos WHERE ID_Movimiento = ?",
+    `SELECT md.*, d.Nombre_Documento, u.Nombre AS Nombre_Usuario, u.Apellido AS Apellido_Usuario 
+     FROM movimientos_documentos md
+     JOIN documentos d ON md.ID_Documento = d.ID_Documento
+     JOIN usuarios u ON md.ID_Usuario = u.ID_Usuario
+     WHERE md.ID_Movimiento = ?`,
     [id],
     (err, results) => {
       if (err) {
@@ -41,7 +53,9 @@ router.get("/movement/:id", (req, res) => {
   );
 });
 
-// 📌 Registrar un movimiento de documento
+
+
+// Registrar un movimiento de documento
 router.post("/register-movement", [
   body("ID_Documento").isInt().withMessage("El ID del documento debe ser un número entero."),
   body("ID_Usuario").isInt().withMessage("El ID del usuario debe ser un número entero."),
@@ -69,7 +83,7 @@ router.post("/register-movement", [
   );
 });
 
-// 📌 Actualizar el estado de un movimiento de documento
+// Actualizar el estado de un movimiento de documento
 router.put("/update-movement/:id", [
   param("id").isInt().withMessage("El ID del movimiento debe ser un número entero."),
   body("Estado").isIn(['En préstamo', 'Devuelto']).withMessage("El estado debe ser 'En préstamo' o 'Devuelto'."),
@@ -97,7 +111,7 @@ router.put("/update-movement/:id", [
   );
 });
 
-// 📌 Eliminar un movimiento de documento
+// Eliminar un movimiento de documento
 router.delete("/delete-movement/:id", (req, res) => {
   const { id } = req.params;
 

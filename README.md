@@ -64,7 +64,7 @@ npm install express mysql mysql2 mariadb
 - **Manejo de archivos y validaciones:**
 
 ```bash
-npm install multer xlsx dotenv express-validator
+npm install xlsx dotenv express-validator
 ```
 
 ```bash
@@ -76,6 +76,8 @@ npm install cors
 ```
 - **Exportacion a PDF**
 npm install pdfkit
+
+npm install multer path fs
 
 ## ▶️ Ejecución del Proyecto
 
