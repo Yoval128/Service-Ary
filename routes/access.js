@@ -11,10 +11,14 @@ router.get("/", (req, res) => {
 // Ruta para registrar acceso mediante tarjeta RFID
 router.post("/register-access-rfid", (req, res) => {
   const { Codigo_RFID, Tipo_Acceso, Ubicacion } = req.body;
-
+  console, log("Codigo: ", Codigo_RFID);
   // Validar campos requeridos
   if (!Codigo_RFID || !Tipo_Acceso || !Ubicacion) {
-    return res.status(400).json({ error: "Faltan datos necesarios (Codigo_RFID, Tipo_Acceso, Ubicacion)" });
+    return res
+      .status(400)
+      .json({
+        error: "Faltan datos necesarios (Codigo_RFID, Tipo_Acceso, Ubicacion)",
+      });
   }
 
   // Consulta para encontrar el usuario asociado a la tarjeta RFID
@@ -28,51 +32,59 @@ router.post("/register-access-rfid", (req, res) => {
   connection.query(findUserQuery, [Codigo_RFID], (err, userResults) => {
     if (err) {
       console.error("Error al buscar usuario:", err);
-      return res.status(500).json({ error: "Error al buscar usuario asociado a la tarjeta" });
+      return res
+        .status(500)
+        .json({ error: "Error al buscar usuario asociado a la tarjeta" });
     }
 
     if (userResults.length === 0) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         error: "Tarjeta no encontrada o no asociada a un usuario activo",
-        Codigo_RFID: Codigo_RFID
+        Codigo_RFID: Codigo_RFID,
       });
     }
 
     const usuario = userResults[0];
-    
+
     // Registrar el acceso
     const registerQuery = `
       INSERT INTO accesos (ID_Usuario, Tipo_Acceso, Ubicacion)
       VALUES (?, ?, ?)
     `;
 
-    connection.query(registerQuery, [usuario.ID_Usuario, Tipo_Acceso, Ubicacion], (err, result) => {
-      if (err) {
-        console.error("Error al registrar acceso:", err);
-        return res.status(500).json({ error: "Error al registrar el acceso" });
-      }
-
-      // Respuesta con detalles del acceso y usuario
-      res.status(201).json({
-        message: "Acceso registrado correctamente",
-        acceso: {
-          ID_Acceso: result.insertId,
-          Fecha_Hora: new Date().toISOString(),
-          Tipo_Acceso,
-          Ubicacion
-        },
-        usuario: {
-          ID_Usuario: usuario.ID_Usuario,
-          Nombre: usuario.Nombre,
-          Apellido: usuario.Apellido,
-          Cargo: usuario.Cargo,
-          Codigo_RFID: usuario.Codigo_RFID
+    connection.query(
+      registerQuery,
+      [usuario.ID_Usuario, Tipo_Acceso, Ubicacion],
+      (err, result) => {
+        if (err) {
+          console.error("Error al registrar acceso:", err);
+          return res
+            .status(500)
+            .json({ error: "Error al registrar el acceso" });
         }
-      });
-    });
+
+      
+        // Respuesta con detalles del acceso y usuario
+        res.status(201).json({
+          message: "Acceso registrado correctamente",
+          acceso: {
+            ID_Acceso: result.insertId,
+            Fecha_Hora: new Date().toISOString(),
+            Tipo_Acceso,
+            Ubicacion,
+          },
+          usuario: {
+            ID_Usuario: usuario.ID_Usuario,
+            Nombre: usuario.Nombre,
+            Apellido: usuario.Apellido,
+            Cargo: usuario.Cargo,
+            Codigo_RFID: usuario.Codigo_RFID,
+          },
+        });
+      }
+    );
   });
 });
-
 
 // Ruta para listar accesos con detalles completos
 router.get("/list-access-detailed", (req, res) => {
@@ -99,13 +111,15 @@ router.get("/list-access-detailed", (req, res) => {
   connection.query(query, (err, results) => {
     if (err) {
       console.error("Error al obtener accesos:", err);
-      return res.status(500).json({ error: "Error al obtener el historial de accesos" });
+      return res
+        .status(500)
+        .json({ error: "Error al obtener el historial de accesos" });
     }
 
     // Formatear fecha más legible
-    const formattedResults = results.map(acceso => ({
+    const formattedResults = results.map((acceso) => ({
       ...acceso,
-      Fecha_Hora_Formateada: new Date(acceso.Fecha_Hora).toLocaleString()
+      Fecha_Hora_Formateada: new Date(acceso.Fecha_Hora).toLocaleString(),
     }));
 
     res.status(200).json(formattedResults);
@@ -114,24 +128,24 @@ router.get("/list-access-detailed", (req, res) => {
 
 // 📌 Obtener una Acceso por ID
 router.get("/tag-rfid/:id", (req, res) => {
-  const {id} = req.params;
+  const { id } = req.params;
 
   connection.query(
-      "SELECT * FROM accesos WHERE ID_Acceso = ?",
-      [id],
-      (err, results) => {
-          if (err) {
-              console.error("Error al obtener el acceso:", err);
-              res.status(500).json({error: "Error al obtener el acceso"});
-              return;
-          }
-
-          if (results.length === 0) {
-              return res.status(404).json({error: "Acceso no encontrada"});
-          }
-
-          res.status(200).json(results[0]);
+    "SELECT * FROM accesos WHERE ID_Acceso = ?",
+    [id],
+    (err, results) => {
+      if (err) {
+        console.error("Error al obtener el acceso:", err);
+        res.status(500).json({ error: "Error al obtener el acceso" });
+        return;
       }
+
+      if (results.length === 0) {
+        return res.status(404).json({ error: "Acceso no encontrada" });
+      }
+
+      res.status(200).json(results[0]);
+    }
   );
 });
 
@@ -157,7 +171,9 @@ router.get("/user-access/:userId", (req, res) => {
   connection.query(query, [userId], (err, results) => {
     if (err) {
       console.error("Error al obtener accesos del usuario:", err);
-      return res.status(500).json({ error: "Error al obtener historial del usuario" });
+      return res
+        .status(500)
+        .json({ error: "Error al obtener historial del usuario" });
     }
 
     res.status(200).json(results);
@@ -188,7 +204,9 @@ router.get("/rfid-access/:codigoRFID", (req, res) => {
   connection.query(query, [codigoRFID], (err, results) => {
     if (err) {
       console.error("Error al obtener accesos por RFID:", err);
-      return res.status(500).json({ error: "Error al obtener historial de la tarjeta" });
+      return res
+        .status(500)
+        .json({ error: "Error al obtener historial de la tarjeta" });
     }
 
     res.status(200).json(results);
