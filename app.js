@@ -19,7 +19,7 @@ console.log("JWT_SECRET: " + process.env.JWT_SECRET);
 
 // Configuración de CORS
 const corsOptions = {
-  origin: process.env.FRONTEND_URL,
+  origin: "*",
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"],
 };
@@ -34,26 +34,29 @@ const server = http.createServer(app);
 
 // Configurar Socket.io
 const io = socketIo(server, {
-  cors: corsOptions
+  cors: corsOptions,
 });
 
 // Manejar conexiones Socket.io
-io.on('connection', (socket) => {
-  console.log('Nuevo cliente conectado:', socket.id);
-  
-  socket.on('disconnect', () => {
-    console.log('Cliente desconectado:', socket.id);
+io.on("connection", (socket) => {
+  console.log("Nuevo cliente conectado:", socket.id);
+
+  socket.on("disconnect", () => {
+    console.log("Cliente desconectado:", socket.id);
+  });
+  socket.on("newRFID", (data) => {
+    console.log("Nuevo código recibido:", data);
   });
 });
 
 // Pasar io a las rutas
-app.set('io', io);
+app.set("io", io);
 
 // Rutas de la API
 app.use("/api", routes);
 
 // Ruta de prueba
-app.get('/api', (req, res) => {
+app.get("/api", (req, res) => {
   res.send("Api Ary funcionando");
 });
 

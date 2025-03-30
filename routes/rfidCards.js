@@ -23,6 +23,7 @@ router.post("/", (req, res) => {
   res.status(200).json({ message: "Código RFID recibido" });
 });
 
+
 //  Obtener todas las tarjetas RFID
 router.get("/rfid-list", (req, res) => {
   connection.query("SELECT * FROM tarjetas_rfid", (err, results) => {
@@ -239,3 +240,4 @@ router.get("/last-rfidCard", (req, res) => {
 
 
 module.exports = router;
+
