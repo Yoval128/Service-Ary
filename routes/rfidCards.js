@@ -23,6 +23,28 @@ router.post("/", (req, res) => {
   res.status(200).json({ message: "Código RFID recibido" });
 });
 
+let rfidLogs = []; // Aquí se almacenarán temporalmente los registros
+
+// Recibir datos del ESP32
+router.post("/read-rfid", (req, res) => {
+    const { rfid } = req.body;
+    if (!rfid) return res.status(400).json({ error: "No RFID provided" });
+
+    const timestamp = new Date().toISOString();
+    const newEntry = { rfid, timestamp };
+
+    rfidLogs.push(newEntry);
+    console.log("Tarjeta registrada:", newEntry);
+
+    res.status(201).json({ message: "RFID registrado", data: newEntry });
+});
+
+// Obtener registros para React Native
+router.get("/read-rfid", (req, res) => {
+    res.json(rfidLogs);
+});
+
+
 
 //  Obtener todas las tarjetas RFID
 router.get("/rfid-list", (req, res) => {
