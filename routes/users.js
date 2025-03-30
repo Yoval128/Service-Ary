@@ -535,83 +535,100 @@ router.get("/generate-pdf", async (req, res) => {
         return res.status(500).json({ error: "Error al obtener los usuarios" });
       }
 
-      const doc = new PDFDocument();
+      // Obtener los códigos de las tarjetas RFID
+      connection.query("SELECT * FROM tarjetas_rfid", (err, tarjetas) => {
+        if (err) {
+          console.error("Error al obtener las tarjetas RFID:", err);
+          return res.status(500).json({ error: "Error al obtener las tarjetas RFID" });
+        }
 
-      // Configurar la fecha actual
-      const currentDate = new Date().toLocaleDateString();
+        const doc = new PDFDocument();
 
-      // Título con la fecha de exportación
-      doc
-        .fontSize(12)
-        .text(`Lista de Usuarios - Exportado el: ${currentDate}`, {
-          align: "center",
-        });
-      doc.moveDown(1);
+        // Configurar la fecha actual
+        const currentDate = new Date().toLocaleDateString();
 
-      // Encabezado de la tabla sin la columna "Contraseña"
-      const header = [
-        "ID_Usuario",
-        "Nombre",
-        "Apellido",
-        "Cargo",
-        "Correo",
-        "Telefono",
-        "ID_Tarjeta_RFID",
-      ];
-
-      // Ancho de cada columna (ajustado para ser aún más pequeño)
-      const columnWidth = [30, 80, 80, 70, 150, 80, 80]; // Columnas más estrechas
-      const tableTop = 140; // Posición para la tabla
-      let currentY = tableTop;
-
-      // Dibujar encabezado de la tabla
-      header.forEach((title, index) => {
+        // Título con la fecha de exportación
         doc
-          .fontSize(8)
-          .text(
-            title,
-            50 + columnWidth.slice(0, index).reduce((a, b) => a + b, 0),
-            currentY
-          );
-      });
-      currentY += 15;
+          .fontSize(12)
+          .text(`Lista de Usuarios - Exportado el: ${currentDate}`, {
+            align: "center",
+          });
+        doc.moveDown(1);
 
-      // Dibujar las filas sin la columna "Contraseña"
-      users.forEach((user) => {
-        const row = [
-          user.ID_Usuario,
-          user.Nombre,
-          user.Apellido,
-          user.Cargo,
-          user.Correo,
-          user.Telefono,
-          user.ID_Tarjeta_RFID,
+        // Encabezado de la tabla sin la columna "Contraseña"
+        const header = [
+          "No",
+          "Nombre",
+          "Apellido",
+          "Cargo",
+          "Correo",
+          "Telefono",
+          "Tarjeta RFID",
+          "Estado",
         ];
 
-        row.forEach((value, index) => {
-          // Añadir cada valor de la fila con la posición calculada
+        // Ancho de cada columna (ajustado para ser aún más pequeño)
+        const columnWidth = [30, 80, 80, 70, 150, 80, 80]; // Columnas más estrechas
+        const tableTop = 140; // Posición para la tabla
+        let currentY = tableTop;
+
+        // Dibujar encabezado de la tabla
+        header.forEach((title, index) => {
           doc
-            .fontSize(7)
+            .fontSize(8)
             .text(
-              value,
+              title,
               50 + columnWidth.slice(0, index).reduce((a, b) => a + b, 0),
               currentY
             );
         });
-        currentY += 12; // Reducir el espaciado entre filas
+        currentY += 15;
+
+        // Número consecutivo
+        let userNumber = 1;
+
+        // Dibujar las filas sin la columna "Contraseña"
+        users.forEach((user) => {
+          // Encontrar el código de la tarjeta RFID del usuario
+          const tarjeta = tarjetas.find((tarjeta) => tarjeta.ID_Tarjeta_RFID === user.ID_Tarjeta_RFID);
+          const codigoTarjeta = tarjeta ? tarjeta.Codigo_RFID : "No Disponible"; // En caso de no encontrar la tarjeta
+
+          const row = [
+            userNumber++, // Número consecutivo
+            user.Nombre,
+            user.Apellido,
+            user.Cargo,
+            user.Correo,
+            user.Telefono,
+            codigoTarjeta,
+            user.Estado,
+          ];
+
+          row.forEach((value, index) => {
+            // Añadir cada valor de la fila con la posición calculada
+            doc
+              .fontSize(7)
+              .text(
+                value,
+                50 + columnWidth.slice(0, index).reduce((a, b) => a + b, 0),
+                currentY
+              );
+          });
+          currentY += 12; // Reducir el espaciado entre filas
+        });
+
+        // Establecer el nombre del archivo y enviarlo como respuesta
+        const filename = "usuarios.pdf";
+        res.setHeader("Content-Type", "application/pdf");
+        res.setHeader(
+          "Content-Disposition",
+          `attachment; filename="${filename}"`
+        );
+
+        // Pipestream del documento PDF al cliente
+        doc.pipe(res);
+        doc.end();
       });
-
-      // Establecer el nombre del archivo y enviarlo como respuesta
-      const filename = "usuarios.pdf";
-      res.setHeader("Content-Type", "application/pdf");
-      res.setHeader(
-        "Content-Disposition",
-        `attachment; filename="${filename}"`
-      );
-
-      // Pipestream del documento PDF al cliente
-      doc.pipe(res);
-      doc.end();
     });
   } catch (error) {
     console.error("Error generando el PDF:", error);

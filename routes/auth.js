@@ -8,6 +8,8 @@ console.log("Rutas de Auth");
 
 // Ruta de prueba
 router.get("/", (req, res) => {
+  
+  console.log("Se ingreso a la ruta index");
   res.send("Ruta de autenticación funcionando");
 });
 
@@ -82,5 +84,77 @@ router.post("/login", (req, res) => {
     }
   );
 });
+
+
+// Ruta para verificar contraseña de administrador
+router.post('/verify-user-password', async (req, res) => {
+ 
+  try {
+      const { email, password } = req.body;
+      console.log(email);
+      console.log(password);
+      if (!email || !password) {
+          return res.status(400).json({ error: "Correo y contraseña son requeridos" });
+      }
+   
+      // Buscar al usuario en la base de datos
+      const query = "SELECT * FROM usuarios WHERE Correo = ? AND Estado = 'activo'";
+      
+      connection.query(query, [email], async (err, results) => {
+          if (err) {
+              console.error("Error al buscar usuario:", err);
+              return res.status(500).json({ error: "Error al verificar la contraseña" });
+          }
+
+          if (results.length === 0) {
+              return res.status(401).json({ isValid: false, error: "Usuario no encontrado" });
+          }
+
+          const user = results[0];
+
+          // Verificar la contraseña
+          const match = await bcrypt.compare(password, user.Contraseña);
+          if (match) {
+              return res.json({ isValid: true });
+          } else {
+              return res.status(401).json({ isValid: false, error: "Contraseña incorrecta" });
+          }
+      });
+
+  } catch (error) {
+      console.error("Error en la verificación:", error);
+      res.status(500).json({ error: "Error interno del servidor" });
+  }
+});
+
+router.post('/verify-nfc', (req, res) => {
+  const { codigo_rfid } = req.body;
+
+  if (!codigo_rfid) {
+      return res.status(400).json({ error: 'El código RFID es requerido' });
+  }
+
+  // Buscar la tarjeta RFID en la base de datos
+  const query = `
+      SELECT u.ID_Usuario, u.Nombre, u.Cargo, u.Correo
+      FROM usuarios u
+      JOIN tarjetas_rfid t ON u.ID_Tarjeta_RFID = t.ID_Tarjeta_RFID
+      WHERE t.Codigo_RFID = ? AND u.Estado = 'activo' AND t.Estado = 'Activo'
+  `;
+
+  connection.query(query, [codigo_rfid], (err, results) => {
+      if (err) {
+          console.error("Error al verificar la tarjeta RFID:", err);
+          return res.status(500).json({ error: "Error interno del servidor" });
+      }
+
+      if (results.length > 0) {
+          return res.json({ isValid: true, user: results[0] });
+      } else {
+          return res.status(401).json({ isValid: false, error: "Tarjeta RFID no válida o usuario inactivo" });
+      }
+  });
+});
+
 
 module.exports = router;

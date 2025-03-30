@@ -140,6 +140,7 @@ router.post("/register-document",
 // Actualizar un Documento con validaciones
 router.put(
   "/update-document/:id",
+  upload.single("file"),  // Aquí se usa el middleware de multer para manejar el archivo
   [
     param("id").isInt().withMessage("El ID debe ser un número entero"),
     body("Nombre_Documento")
@@ -178,7 +179,7 @@ router.put(
       ID_Etiqueta_RFID,
     } = req.body;
 
-    // Comprobamos si el documento existe antes de actualizar
+    // Verificamos si el documento existe antes de actualizar
     const checkQuery = "SELECT * FROM documentos WHERE ID_Documento = ?";
     connection.query(checkQuery, [id], (err, result) => {
       if (err)
@@ -188,9 +189,19 @@ router.put(
       if (result.length === 0)
         return res.status(404).json({ message: "Documento no encontrado" });
 
+      // Si se ha subido un nuevo archivo, eliminamos el archivo antiguo
+      let filePath = result[0].filePath;
+      if (req.file) {
+        // Eliminamos el archivo anterior
+        fs.unlinkSync(filePath); // Esto eliminará el archivo previo en el servidor
+
+        // Guardamos el nuevo archivo y generamos la nueva ruta
+        filePath = `uploads/documents/${req.file.filename}`;
+      }
+
       // Construimos la consulta de actualización de forma dinámica
-      let updateQuery = `UPDATE documentos SET Nombre_Documento = ?, Tipo_Documento = ?, Ubicacion = ?, Estado = ?`;
-      let queryParams = [Nombre_Documento, Tipo_Documento, Ubicacion, Estado];
+      let updateQuery = `UPDATE documentos SET Nombre_Documento = ?, Tipo_Documento = ?, Ubicacion = ?, Estado = ?, filePath = ?`;
+      let queryParams = [Nombre_Documento, Tipo_Documento, Ubicacion, Estado, filePath];
 
       // Si ID_Etiqueta_RFID fue enviado, lo añadimos a la consulta
       if (ID_Etiqueta_RFID !== undefined) {
@@ -212,6 +223,8 @@ router.put(
     });
   }
 );
+
+
 
 // Eliminar un Documento con validación
 router.delete(

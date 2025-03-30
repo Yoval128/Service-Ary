@@ -14,6 +14,7 @@ const rfidCardsRoutes = require("./rfidCards.js");
 const rfidTagsRoutes = require("./rfidTags.js");
 const administratorsRoutes = require("./administrators.js");
 const documentMovementsRoutes = require("./documentMovements.js");
+const downloadsRoutes= require('./downloads.js');
 
 // Usa las rutas
 router.use("/ping", pingRoutes);
@@ -27,5 +28,6 @@ router.use("/archivers", archiversRoutes);
 router.use("/rfidCards", rfidCardsRoutes);
 router.use("/administrators", administratorsRoutes);
 router.use("/documentMovements", documentMovementsRoutes);
+router.use("/downloads",downloadsRoutes);
 
 module.exports = router;
