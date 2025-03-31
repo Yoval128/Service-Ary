@@ -1,6 +1,7 @@
 const express = require("express");
 const multer = require("multer");
 const xlsx = require("xlsx");
+const bcrypt = require("bcrypt");
 const connection = require("../db/connection");
 const router = express.Router();
 
@@ -61,14 +62,39 @@ router.post(
           continue;
         }
 
-        try {
-          const query =
-            "INSERT INTO usuarios (Nombre, Apellido, Cargo, Correo, Contraseña, Telefono, ID_Tarjeta_RFID  ) VALUES (?, ?, ?, ?, ?, ?, ?)";
-          const values = [Nombre, Apellido, Cargo, Correo, Contraseña, Telefono, ID_Tarjeta_RFID];
+        // Agregar log para inspeccionar la contraseña
+        console.log(`Contraseña recibida: "${Contraseña}"`);
 
+        try {
+          // Asegurarse de que la contraseña sea una cadena
+          const contrasenaTrimmed = String(Contraseña).trim();
+
+          // Verificar que la contraseña sea una cadena de texto válida
+          if (contrasenaTrimmed === "") {
+            console.error(`Contraseña inválida: "${Contraseña}"`);  // Log del valor de la contraseña
+            throw new Error("Contraseña inválida");
+          }
+
+          // Encriptar la contraseña
+          const hashedPassword = await bcrypt.hash(contrasenaTrimmed, 10); // 10 es el número de rondas
+
+          const query =
+            "INSERT INTO usuarios (Nombre, Apellido, Cargo, Correo, Contraseña, Telefono, ID_Tarjeta_RFID) VALUES (?, ?, ?, ?, ?, ?, ?)";
+          const values = [
+            Nombre,
+            Apellido,
+            Cargo,
+            Correo,
+            hashedPassword, // Usar la contraseña encriptada
+            Telefono,
+            ID_Tarjeta_RFID,
+          ];
+
+          // Realizar la inserción
           await new Promise((resolve, reject) => {
             connection.query(query, values, (err, results) => {
               if (err) {
+                console.error("Error al insertar registro:", err);  // Log más detallado
                 return reject("Error al insertar un registro");
               }
               resolve(results);
@@ -76,6 +102,7 @@ router.post(
           });
           subidos++;
         } catch (error) {
+          console.error("Error al procesar el usuario:", error);  // Log de error más detallado
           errores++;
         }
       }
@@ -89,12 +116,10 @@ router.post(
         },
       });
     } catch (error) {
-      console.error(error);
+      console.error("Error al procesar el archivo:", error);  // Log de error más detallado
       res.status(500).json({ error: "Hubo un error al procesar el archivo" });
     }
   }
 );
-
-
 
 module.exports = router;
