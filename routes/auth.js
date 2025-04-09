@@ -8,7 +8,6 @@ console.log("Rutas de Auth");
 
 // Ruta de prueba
 router.get("/", (req, res) => {
-  
   console.log("Se ingreso a la ruta index");
   res.send("Ruta de autenticación funcionando");
 });
@@ -85,53 +84,59 @@ router.post("/login", (req, res) => {
   );
 });
 
-
 // Ruta para verificar contraseña de administrador
-router.post('/verify-user-password', async (req, res) => {
- 
+router.post("/verify-user-password", async (req, res) => {
   try {
-      const { email, password } = req.body;
-      console.log(email);
-      console.log(password);
-      if (!email || !password) {
-          return res.status(400).json({ error: "Correo y contraseña son requeridos" });
+    const { email, password } = req.body;
+    console.log(email);
+    console.log(password);
+    if (!email || !password) {
+      return res
+        .status(400)
+        .json({ error: "Correo y contraseña son requeridos" });
+    }
+
+    // Buscar al usuario en la base de datos
+    const query =
+      "SELECT * FROM usuarios WHERE Correo = ? AND Estado = 'activo'";
+
+    connection.query(query, [email], async (err, results) => {
+      if (err) {
+        console.error("Error al buscar usuario:", err);
+        return res
+          .status(500)
+          .json({ error: "Error al verificar la contraseña" });
       }
-   
-      // Buscar al usuario en la base de datos
-      const query = "SELECT * FROM usuarios WHERE Correo = ? AND Estado = 'activo'";
-      
-      connection.query(query, [email], async (err, results) => {
-          if (err) {
-              console.error("Error al buscar usuario:", err);
-              return res.status(500).json({ error: "Error al verificar la contraseña" });
-          }
 
-          if (results.length === 0) {
-              return res.status(401).json({ isValid: false, error: "Usuario no encontrado" });
-          }
+      if (results.length === 0) {
+        return res
+          .status(401)
+          .json({ isValid: false, error: "Usuario no encontrado" });
+      }
 
-          const user = results[0];
+      const user = results[0];
 
-          // Verificar la contraseña
-          const match = await bcrypt.compare(password, user.Contraseña);
-          if (match) {
-              return res.json({ isValid: true });
-          } else {
-              return res.status(401).json({ isValid: false, error: "Contraseña incorrecta" });
-          }
-      });
-
+      // Verificar la contraseña
+      const match = await bcrypt.compare(password, user.Contraseña);
+      if (match) {
+        return res.json({ isValid: true });
+      } else {
+        return res
+          .status(401)
+          .json({ isValid: false, error: "Contraseña incorrecta" });
+      }
+    });
   } catch (error) {
-      console.error("Error en la verificación:", error);
-      res.status(500).json({ error: "Error interno del servidor" });
+    console.error("Error en la verificación:", error);
+    res.status(500).json({ error: "Error interno del servidor" });
   }
 });
 
-router.post('/verify-nfc', (req, res) => {
+router.post("/verify-nfc", (req, res) => {
   const { codigo_rfid } = req.body;
 
   if (!codigo_rfid) {
-      return res.status(400).json({ error: 'El código RFID es requerido' });
+    return res.status(400).json({ error: "El código RFID es requerido" });
   }
 
   // Buscar la tarjeta RFID en la base de datos
@@ -143,18 +148,91 @@ router.post('/verify-nfc', (req, res) => {
   `;
 
   connection.query(query, [codigo_rfid], (err, results) => {
-      if (err) {
-          console.error("Error al verificar la tarjeta RFID:", err);
-          return res.status(500).json({ error: "Error interno del servidor" });
-      }
+    if (err) {
+      console.error("Error al verificar la tarjeta RFID:", err);
+      return res.status(500).json({ error: "Error interno del servidor" });
+    }
 
-      if (results.length > 0) {
-          return res.json({ isValid: true, user: results[0] });
-      } else {
-          return res.status(401).json({ isValid: false, error: "Tarjeta RFID no válida o usuario inactivo" });
-      }
+    if (results.length > 0) {
+      return res.json({ isValid: true, user: results[0] });
+    } else {
+      return res
+        .status(401)
+        .json({
+          isValid: false,
+          error: "Tarjeta RFID no válida o usuario inactivo",
+        });
+    }
   });
 });
 
+router.post("/verify-nfc-admin", (req, res) => {
+  const { codigo_rfid } = req.body;
+
+  // Validación más completa
+  if (
+    !codigo_rfid ||
+    typeof codigo_rfid !== "string" ||
+    codigo_rfid.trim() === ""
+  ) {
+    return res.status(400).json({
+      success: false,
+      error: "Se requiere un código RFID válido",
+    });
+  }
+
+  const query = `
+      SELECT
+          u.ID_Usuario,
+          u.Nombre,
+          u.Apellido,
+          u.Cargo,
+          CASE
+              WHEN u.Cargo = 'Administrador' THEN 1
+              ELSE 0
+          END AS EsAdministrador,
+          t.Estado AS EstadoTarjeta,
+          u.Estado AS EstadoUsuario
+      FROM
+          tarjetas_rfid t
+      JOIN
+          usuarios u ON t.ID_Tarjeta_RFID = u.ID_Tarjeta_RFID
+      WHERE
+          t.Codigo_RFID = ?
+          AND t.Estado = 'Activo'
+          AND u.Estado = 'activo'
+  `;
+
+  connection.query(query, [codigo_rfid.trim()], (err, results) => {
+    if (err) {
+      console.error("Error al verificar la tarjeta RFID:", err);
+      return res.status(500).json({
+        success: false,
+        error: "Error interno del servidor",
+      });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({
+        success: false,
+        isValid: false,
+        error: "Tarjeta no registrada o usuario inactivo",
+      });
+    }
+
+    const userData = results[0];
+    return res.json({
+      success: true,
+      isValid: true,
+      isAdmin: userData.EsAdministrador === 1,
+      user: {
+        id: userData.ID_Usuario,
+        nombre: userData.Nombre,
+        apellido: userData.Apellido,
+        cargo: userData.Cargo,
+      },
+    });
+  });
+});
 
 module.exports = router;

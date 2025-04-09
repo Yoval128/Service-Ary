@@ -1,6 +1,11 @@
-# ARYControlAccess
+# ARYControlAccess - API
 
-Sistema de gestión de accesos basado en RFID, desarrollado con Node.js y MySQL.
+**Versión Final - Proyecto Integrador**  
+**Backend del sistema de control de accesos y gestión de documentos mediante RFID**
+
+Esta API forma parte del sistema [**ARYControlAccess**](https://github.com/Yoval128/app-arycontrolaccess), un proyecto enfocado en la **seguridad, trazabilidad y gestión de documentos confidenciales** mediante tecnología RFID. Desarrollada con **Node.js** y **MySQL**, esta API se encarga de la autenticación, registro y administración de usuarios, control de accesos, carga y movimiento de archivos, todo con control de roles y cifrado de datos.
+
+---
 
 ## ✅ Requisitos
 
@@ -10,28 +15,9 @@ Antes de comenzar, asegúrate de tener instalados los siguientes programas:
 - [npm](https://www.npmjs.com/)
 - Base de datos SQL (MySQL o MariaDB)
 
-## 📦 Creacion del .env local para trabajo local
+---
 
-Realizar la creacion de .env.local para agregar las variables globales como lo es la base de datos, contraseña, ect
-
-- Ejemplo:
-  DB_HOST=localhost
-  DB_USER=root
-  DB_PASSWORD=
-  DB_DATABASE=ary
-  JWT_SECRET=jf8wJf#kG$9sG7%3kL!sdF4Q1
-  FRONTEND_URL=http://localhost:8081
-
-  TWILIO_ACCOUNT_SID=
-  TWILIO_AUTH_TOKEN=
-  TWILIO_PHONE_NUMBER=
-  ADMIN_PHONE_NUMBER=
-
-* !!El env que se subira a el servidor debera se bajo el env.produccion y ese no se debe modificar directamente
-
-## 📦 Instalación de las Dependencias
-
-Sigue estos pasos para configurar el entorno del proyecto:
+## 📦 Instalación de dependencias
 
 1. Clona el repositorio:
 
@@ -40,89 +26,41 @@ git clone https://github.com/Yoval128/Service-Ary.git
 cd Service-Ary
 ```
 
-2. Inicializa el proyecto y descarga las dependencias principales:
+2. Inicializa el proyecto y descarga las dependencias:
 
 ```bash
-npm init -y
 npm install
 ```
 
-3. Instala las dependencias adicionales necesarias:
-
-- **Encriptación de contraseñas y manejo de JWT (JSON Web Tokens):**
-
-```bash
-npm install bcryptjs jsonwebtoken
-```
-
-- **Manejo de rutas y conexión a la base de datos:**
-
-```bash
-npm install express mysql mysql2 mariadb
-```
-
-- **Manejo de archivos y validaciones:**
-
-```bash
-npm install xlsx dotenv express-validator
-```
-
-```bash
-npm install twilio
-```
-
-```bash
-npm install cors
-```
-- **Exportacion a PDF**
-npm install pdfkit
-
-npm install multer path fs
+---
 
 ## ▶️ Ejecución del Proyecto
 
-1. Asegúrate de tener tu base de datos configurada y el archivo `.env` con las credenciales correspondientes.
-
-2. Ejecuta el proyecto:
+Asegúrate de tener tu base de datos en ejecución y el archivo `.env` configurado correctamente.
 
 ```bash
 npm start
 ```
 
-## 📖 Notas
+> Por defecto corre en `http://localhost:3001/api`
 
-- **express:** Para manejar las rutas y solicitudes HTTP (GET, POST, PUT, DELETE).
-- **bcryptjs:** Para la encriptación segura de las contraseñas.
-- **jsonwebtoken:** Para la autenticación mediante tokens JWT.
-- **multer:** Para la gestión de archivos.
-- **dotenv:** Para la configuración de variables de entorno.
+---
 
-## Estructura del proyecto
+## 📚 Funcionalidades principales
 
-services/
-├── db/ # Conexión y configuración de la base de datos
-├── db-script/ # Scripts para inicialización de la base de datos
-├── node_modules/ # Dependencias del proyecto (generado automáticamente por npm)
-├── routes/ # Rutas del API REST
-│ ├── access.js # Rutas de acceso
-│ ├── administrators.js # Rutas para administradores
-│ ├── archivers.js # Rutas de archivadores
-│ ├── auth.js # Rutas de autenticación
-│ ├── documentMovements.js # Rutas para el movimiento de documentos
-│ ├── documents.js # Rutas para la gestión de documentos
-│ ├── index.js # Punto de entrada de las rutas
-│ ├── rfidCards.js # Rutas para las tarjetas RFID
-│ ├── rfidTags.js # Rutas para las etiquetas RFID
-│ ├── uploads.js # Rutas para la gestión de archivos subidos
-│ └── users.js # Rutas para la gestión de usuarios
-├── uploads/ # Carpeta para almacenamiento de archivos subidos
-├── .env # Variables de entorno (configuración sensible)
-├── .gitignore # Archivos y carpetas ignorados por Git
-├── app.js # Archivo principal del servidor
-├── package.json # Archivo de configuración de dependencias
-├── package-lock.json # Versión fija de las dependencias
-└── README.md # Documentación del proyecto
+- **Autenticación de usuarios** mediante JWT y bcrypt.
+- **Gestión de usuarios, administradores y archivadores.**
+- **Carga, descarga consulta y movimiento de documentos (PDF).**
+- **Control de accesos RFID.**
+- **Gestión de tarjetas RFID y etiquetas.**
+- **Notificaciones y mensajes SMS (Twilio).**
+- **Exportación a PDF.**
 
-## Prueba de la Api
+---
 
-- http://localhost:3001/api/auth
+
+## 👨‍💻 Autor
+
+**Yoval128**  
+Técnico en Programación | Estudiante TSU en Desarrollo de Software  
+[GitHub: Yoval128](https://github.com/Yoval128)
